@@ -186,7 +186,7 @@ class SaveRepeatableToDatabaseFinisher extends \TYPO3\CMS\Form\Domain\Finishers\
                     continue;
                 }
 
-                if (!\is_string($value)) {
+                if (!\is_string($value) && !\is_numeric($value)) {
                     throw new FinisherException('Mapping for column "' . $databaseColumnName . '" of table "' . $table . '" is invalid');
                 }
 
