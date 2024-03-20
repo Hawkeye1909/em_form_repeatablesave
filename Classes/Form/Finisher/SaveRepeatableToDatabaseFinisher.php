@@ -158,40 +158,26 @@ class SaveRepeatableToDatabaseFinisher extends \TYPO3\CMS\Form\Domain\Finishers\
         $this->throwExceptionOnInconsistentConfiguration();
 
         $table = $this->parseOption('table');
+        $table = is_string($table) ? $table : '';
         $elementsConfiguration = $this->parseOption('elements');
+        $elementsConfiguration = is_array($elementsConfiguration) ? $elementsConfiguration : [];
         $databaseColumnMappingsConfiguration = $this->parseOption('databaseColumnMappings');
         $repeat = $this->parseOption('repeat');
-
-        if (!\is_string($table)) {
-            throw new FinisherException('Table value is invalid');
-        }
-        if (!\is_array($elementsConfiguration)) {
-            throw new FinisherException('Elements array for table "' . $table . '" is invalid');
-        }
-        if (!\is_string($repeat)) {
-            $repeat = '';
-        }
+        $repeat = is_string($repeat) ? $repeat : '';
 
         $this->databaseConnection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable($table);
 
         $databaseData = [];
-        if (\is_array($databaseColumnMappingsConfiguration)) {
-            foreach ($databaseColumnMappingsConfiguration as $databaseColumnName => $databaseColumnConfiguration) {
-                $databaseColumnName = (string) $databaseColumnName;
-                $value = $this->parseOption('databaseColumnMappings.' . $databaseColumnName . '.value');
-                if (
-                    empty($value)
-                    && $databaseColumnConfiguration['skipIfValueIsEmpty'] === true
-                ) {
-                    continue;
-                }
-
-                if (!\is_string($value)) {
-                    throw new FinisherException('Mapping for column "' . $databaseColumnName . '" of table "' . $table . '" is invalid');
-                }
-
-                $databaseData[$databaseColumnName] = $value;
+        foreach ($databaseColumnMappingsConfiguration as $databaseColumnName => $databaseColumnConfiguration) {
+            $value = $this->parseOption('databaseColumnMappings.' . $databaseColumnName . '.value');
+            if (
+                empty($value)
+                && $databaseColumnConfiguration['skipIfValueIsEmpty'] === true
+            ) {
+                continue;
             }
+
+            $databaseData[$databaseColumnName] = $value;
         }
 
         if ($repeat) {
@@ -216,7 +202,7 @@ class SaveRepeatableToDatabaseFinisher extends \TYPO3\CMS\Form\Domain\Finishers\
     {
         $values = $this->getFormValues();
         // container does not exist
-        if (isset($values[$repeat])) {
+        if (!isset($values[$repeat])) {
             $this->throwExceptionOnInconsistentConfiguration();
         }
         $count = \count($values[$repeat]);
